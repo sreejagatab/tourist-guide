@@ -11,10 +11,13 @@ import {
   CardActions,
   Container,
   Paper,
+  Divider,
 } from '@mui/material';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import DirectionsBikeIcon from '@mui/icons-material/DirectionsBike';
+import ExploreIcon from '@mui/icons-material/Explore';
+import HomePageMap from '../components/maps/HomePageMap';
 
 const HomePage: React.FC = () => {
   return (
@@ -153,6 +156,32 @@ const HomePage: React.FC = () => {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Map Section */}
+      <Box sx={{ mb: 6 }}>
+        <Typography variant="h4" component="h2" gutterBottom align="center" sx={{ mb: 2 }}>
+          Explore Tours Around the World
+        </Typography>
+        <Typography variant="body1" align="center" sx={{ mb: 4, maxWidth: 800, mx: 'auto' }}>
+          Discover our top-rated tours in destinations worldwide. Click on the map markers to learn more.
+        </Typography>
+        <Box sx={{ height: 500, mb: 3 }}>
+          <HomePageMap />
+        </Box>
+        <Box sx={{ textAlign: 'center' }}>
+          <Button
+            variant="contained"
+            startIcon={<ExploreIcon />}
+            component={RouterLink}
+            to="/tours"
+            size="large"
+          >
+            Find Tours Near You
+          </Button>
+        </Box>
+      </Box>
+
+      <Divider sx={{ my: 6 }} />
 
       {/* Features Section */}
       <Box sx={{ bgcolor: 'grey.100', py: 6, px: 2, borderRadius: 2, mb: 6 }}>

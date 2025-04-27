@@ -17,6 +17,7 @@ import TourDetailPage from './pages/TourDetailPage';
 import BookingPage from './pages/BookingPage';
 import BookingsPage from './pages/BookingsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import PaymentPage from './pages/PaymentPage';
 
 // Auth Components
 import Login from './components/auth/Login';
@@ -91,6 +92,8 @@ const App: React.FC = () => {
               <Route path="/tours/:tourType" element={<ToursPage />} />
               <Route path="/tours/:id/details" element={<TourDetailPage />} />
               <Route path="/tours/:id/book" element={<BookingPage />} />
+              <Route path="/payment" element={<PaymentPage />} />
+              <Route path="/payment-success" element={<PaymentPage />} />
 
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>

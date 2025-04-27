@@ -39,6 +39,7 @@ import {
 import TourService, { Tour } from '../services/tour.service';
 import ReviewService, { Review } from '../services/review.service';
 import { useAuth } from '../context/AuthContext';
+import TourMap from '../components/maps/TourMap';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -77,7 +78,7 @@ const TourDetailPage: React.FC = () => {
         if (id) {
           const tourData = await TourService.getTourById(id);
           setTour(tourData);
-          
+
           // Fetch reviews
           const reviewsData = await ReviewService.getTourReviews(id);
           setReviews(reviewsData);
@@ -475,7 +476,7 @@ const TourDetailPage: React.FC = () => {
           <Typography variant="h5" gutterBottom>
             Tour Itinerary
           </Typography>
-          
+
           {tour.locations && tour.locations.length > 0 ? (
             <List>
               {tour.locations.map((location, index) => (
@@ -590,7 +591,7 @@ const TourDetailPage: React.FC = () => {
                         <Rating value={typeof review !== 'string' ? review.rating : 0} readOnly />
                       </Box>
                     </Box>
-                    
+
                     {typeof review !== 'string' && (
                       <>
                         <Typography variant="h6" gutterBottom>
@@ -599,7 +600,7 @@ const TourDetailPage: React.FC = () => {
                         <Typography variant="body1" paragraph>
                           {review.review}
                         </Typography>
-                        
+
                         {review.photos && review.photos.length > 0 && (
                           <Box sx={{ display: 'flex', gap: 1, mb: 2, overflowX: 'auto', py: 1 }}>
                             {review.photos.map((photo, index) => (
@@ -618,7 +619,7 @@ const TourDetailPage: React.FC = () => {
                             ))}
                           </Box>
                         )}
-                        
+
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
                           <Button
                             size="small"
@@ -626,7 +627,7 @@ const TourDetailPage: React.FC = () => {
                           >
                             Helpful ({review.helpfulVotes})
                           </Button>
-                          
+
                           {user && typeof review.user !== 'string' && user._id === review.user._id && (
                             <Box>
                               <Button
@@ -651,7 +652,7 @@ const TourDetailPage: React.FC = () => {
                             </Box>
                           )}
                         </Box>
-                        
+
                         {review.response && (
                           <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
                             <Typography variant="subtitle2" gutterBottom>
@@ -684,22 +685,52 @@ const TourDetailPage: React.FC = () => {
             Tour Map
           </Typography>
           <Typography variant="body1" paragraph>
-            Map integration will be implemented in the next phase.
+            Explore the tour route and locations on the map below.
           </Typography>
-          <Box
-            sx={{
-              height: 400,
-              bgcolor: 'grey.200',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 1,
-            }}
-          >
-            <Typography variant="h6" color="text.secondary">
-              Map Placeholder
-            </Typography>
-          </Box>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <TourMap tour={tour} height={500} />
+            </Grid>
+            {tour.startLocation && (
+              <Grid item xs={12} md={6}>
+                <Paper sx={{ p: 2 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Starting Point
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                    <LocationOnIcon sx={{ mr: 1, mt: 0.5 }} color="error" />
+                    <Box>
+                      <Typography variant="body1">
+                        {tour.startLocation.description || 'Meeting Point'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {tour.startLocation.address || 'Address not specified'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Paper>
+              </Grid>
+            )}
+            {tour.locations && tour.locations.length > 0 && (
+              <Grid item xs={12} md={6}>
+                <Paper sx={{ p: 2 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Tour Stops
+                  </Typography>
+                  <Typography variant="body2" paragraph>
+                    This tour includes {tour.locations.length} stops along the route.
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    onClick={() => setTabValue(1)}
+                    startIcon={<InfoIcon />}
+                  >
+                    View Detailed Itinerary
+                  </Button>
+                </Paper>
+              </Grid>
+            )}
+          </Grid>
         </TabPanel>
       </Paper>
 

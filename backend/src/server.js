@@ -25,6 +25,7 @@ const tourRoutes = require('./routes/tour.routes');
 const bookingRoutes = require('./routes/booking.routes');
 const reviewRoutes = require('./routes/review.routes');
 const itineraryRoutes = require('./routes/itinerary.routes');
+const paymentRoutes = require('./routes/payment.routes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -32,6 +33,7 @@ app.use('/api/tours', tourRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/itineraries', itineraryRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // MongoDB connection
 const PORT = process.env.PORT || 5000;

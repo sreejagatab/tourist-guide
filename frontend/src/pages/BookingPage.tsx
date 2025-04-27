@@ -132,7 +132,8 @@ const BookingPage: React.FC = () => {
       setSubmitting(true);
       setError('');
 
-      const bookingData: CreateBookingData = {
+      // Prepare booking data
+      const bookingData = {
         tourId: id!,
         date: bookingDate.toISOString(),
         numberOfPeople,
@@ -149,7 +150,19 @@ const BookingPage: React.FC = () => {
         };
       }
 
-      const booking = await BookingService.createBooking(bookingData);
+      // If payment method is Stripe, redirect to payment page
+      if (paymentMethod === 'stripe') {
+        navigate('/payment', { state: { bookingData } });
+        return;
+      }
+
+      // For other payment methods, create booking directly
+      const createBookingData: CreateBookingData = {
+        ...bookingData,
+        paymentMethod: paymentMethod as 'credit_card' | 'paypal' | 'stripe',
+      };
+
+      const booking = await BookingService.createBooking(createBookingData);
 
       setSuccess('Booking created successfully!');
 
