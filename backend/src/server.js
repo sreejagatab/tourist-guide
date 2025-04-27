@@ -21,15 +21,17 @@ app.get('/', (req, res) => {
 
 // Import routes
 const authRoutes = require('./routes/auth.routes');
-// const tourRoutes = require('./routes/tour.routes');
-// const bookingRoutes = require('./routes/booking.routes');
-// const reviewRoutes = require('./routes/review.routes');
+const tourRoutes = require('./routes/tour.routes');
+const bookingRoutes = require('./routes/booking.routes');
+const reviewRoutes = require('./routes/review.routes');
+const itineraryRoutes = require('./routes/itinerary.routes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
-// app.use('/api/tours', tourRoutes);
-// app.use('/api/bookings', bookingRoutes);
-// app.use('/api/reviews', reviewRoutes);
+app.use('/api/tours', tourRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/itineraries', itineraryRoutes);
 
 // MongoDB connection
 const PORT = process.env.PORT || 5000;

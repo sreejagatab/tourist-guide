@@ -13,6 +13,10 @@ import Layout from './components/layout/Layout';
 import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
 import ToursPage from './pages/ToursPage';
+import TourDetailPage from './pages/TourDetailPage';
+import BookingPage from './pages/BookingPage';
+import BookingsPage from './pages/BookingsPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 
 // Auth Components
 import Login from './components/auth/Login';
@@ -85,16 +89,23 @@ const App: React.FC = () => {
               <Route path="/register" element={<Register />} />
               <Route path="/tours" element={<ToursPage />} />
               <Route path="/tours/:tourType" element={<ToursPage />} />
+              <Route path="/tours/:id/details" element={<TourDetailPage />} />
+              <Route path="/tours/:id/book" element={<BookingPage />} />
 
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/bookings" element={<BookingsPage />} />
+                <Route path="/bookings/:id" element={<BookingsPage />} />
                 {/* Add more protected routes here */}
               </Route>
 
               {/* Admin Routes */}
               <Route element={<ProtectedRoute requiredRole="admin" />}>
-                {/* Add admin routes here */}
+                <Route path="/admin" element={<AdminDashboardPage />} />
+                <Route path="/admin/tours" element={<AdminDashboardPage />} />
+                <Route path="/admin/bookings" element={<AdminDashboardPage />} />
+                <Route path="/admin/users" element={<AdminDashboardPage />} />
               </Route>
             </Routes>
           </Layout>
