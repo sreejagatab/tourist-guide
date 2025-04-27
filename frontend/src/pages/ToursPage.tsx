@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link as RouterLink } from 'react-router-dom';
 import {
   Box,
@@ -22,6 +22,7 @@ import {
   Divider,
   Paper,
   SelectChangeEvent,
+  IconButton,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -29,6 +30,8 @@ import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import DirectionsBikeIcon from '@mui/icons-material/DirectionsBike';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import FavoriteButton from '../components/favorites/FavoriteButton';
+import TourService, { Tour } from '../services/tour.service';
 
 // Mock data for tours
 const mockTours = [

@@ -40,6 +40,7 @@ import TourService, { Tour } from '../services/tour.service';
 import ReviewService, { Review } from '../services/review.service';
 import { useAuth } from '../context/AuthContext';
 import TourMap from '../components/maps/TourMap';
+import FavoriteButton from '../components/favorites/FavoriteButton';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -209,9 +210,12 @@ const TourDetailPage: React.FC = () => {
         <Box sx={{ position: 'relative', p: 4, width: '100%' }}>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={8}>
-              <Typography component="h1" variant="h3" color="inherit" gutterBottom>
-                {tour.name}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography component="h1" variant="h3" color="inherit" gutterBottom>
+                  {tour.name}
+                </Typography>
+                <FavoriteButton tourId={tour._id} size="large" tooltipPlacement="left" />
+              </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 1 }}>
                 <Chip
                   icon={getTourIcon(tour.type)}

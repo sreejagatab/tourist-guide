@@ -1,44 +1,20 @@
-const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const dotenv = require('dotenv');
+const app = require('./app');
 
 // Load environment variables
 dotenv.config();
-
-// Initialize Express app
-const app = express();
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Routes
-app.get('/', (req, res) => {
-  res.send('TourGuide API is running');
-});
-
-// Import routes
-const authRoutes = require('./routes/auth.routes');
-const tourRoutes = require('./routes/tour.routes');
-const bookingRoutes = require('./routes/booking.routes');
-const reviewRoutes = require('./routes/review.routes');
-const itineraryRoutes = require('./routes/itinerary.routes');
-const paymentRoutes = require('./routes/payment.routes');
-
-// Use routes
-app.use('/api/auth', authRoutes);
-app.use('/api/tours', tourRoutes);
-app.use('/api/bookings', bookingRoutes);
-app.use('/api/reviews', reviewRoutes);
-app.use('/api/itineraries', itineraryRoutes);
-app.use('/api/payments', paymentRoutes);
 
 // MongoDB connection
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tourguide';
 
+// Add a home route
+app.get('/', (req, res) => {
+  res.send('TourGuide API is running');
+});
+
+// Connect to MongoDB and start server
 mongoose
   .connect(MONGODB_URI)
   .then(() => {
@@ -49,12 +25,5 @@ mongoose
   })
   .catch((error) => {
     console.error('MongoDB connection error:', error);
+    process.exit(1);
   });
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
-});
-
-module.exports = app;

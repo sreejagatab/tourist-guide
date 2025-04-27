@@ -26,10 +26,14 @@ import {
   StarRate as StarRateIcon,
   TrendingUp as TrendingUpIcon,
   AttachMoney as AttachMoneyIcon,
+  BarChart as BarChartIcon,
+  Analytics as AnalyticsIcon,
 } from '@mui/icons-material';
 import BookingService from '../services/booking.service';
 import TourService from '../services/tour.service';
 import { useAuth } from '../context/AuthContext';
+import AnalyticsDashboard from '../components/admin/AnalyticsDashboard';
+import useResponsive from '../hooks/useResponsive';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -53,6 +57,7 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index, ...other })
 
 const AdminDashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const { isMobile } = useResponsive();
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -63,15 +68,15 @@ const AdminDashboardPage: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch bookings
         const bookingsResponse = await BookingService.getAllBookings();
         setBookings(bookingsResponse.bookings);
-        
+
         // Fetch tours
         const toursResponse = await TourService.getAllTours();
         setTours(toursResponse.tours);
-        
+
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to load data');
       } finally {
@@ -215,10 +220,13 @@ const AdminDashboardPage: React.FC = () => {
           value={tabValue}
           onChange={handleTabChange}
           aria-label="admin dashboard tabs"
+          variant={isMobile ? "scrollable" : "fullWidth"}
+          scrollButtons={isMobile ? "auto" : undefined}
         >
           <Tab label="Recent Bookings" id="admin-tab-0" />
           <Tab label="Popular Tours" id="admin-tab-1" />
           <Tab label="Users" id="admin-tab-2" />
+          <Tab label="Analytics" id="admin-tab-3" icon={<AnalyticsIcon />} iconPosition="start" />
         </Tabs>
 
         {/* Recent Bookings Tab */}
@@ -229,7 +237,7 @@ const AdminDashboardPage: React.FC = () => {
             </Typography>
             <Button variant="outlined">View All Bookings</Button>
           </Box>
-          
+
           <TableContainer>
             <Table>
               <TableHead>
@@ -247,13 +255,13 @@ const AdminDashboardPage: React.FC = () => {
                   <TableRow key={booking._id}>
                     <TableCell>{booking._id.substring(0, 8)}...</TableCell>
                     <TableCell>
-                      {typeof booking.tour === 'string' 
-                        ? booking.tour.substring(0, 8) + '...' 
+                      {typeof booking.tour === 'string'
+                        ? booking.tour.substring(0, 8) + '...'
                         : booking.tour.name}
                     </TableCell>
                     <TableCell>
-                      {typeof booking.user === 'string' 
-                        ? booking.user.substring(0, 8) + '...' 
+                      {typeof booking.user === 'string'
+                        ? booking.user.substring(0, 8) + '...'
                         : booking.user.username}
                     </TableCell>
                     <TableCell>{new Date(booking.date).toLocaleDateString()}</TableCell>
@@ -280,7 +288,7 @@ const AdminDashboardPage: React.FC = () => {
             </Typography>
             <Button variant="outlined">Manage Tours</Button>
           </Box>
-          
+
           <TableContainer>
             <Table>
               <TableHead>
@@ -335,6 +343,11 @@ const AdminDashboardPage: React.FC = () => {
           <Typography variant="body1">
             User management functionality will be implemented in the next phase.
           </Typography>
+        </TabPanel>
+
+        {/* Analytics Tab */}
+        <TabPanel value={tabValue} index={3}>
+          <AnalyticsDashboard />
         </TabPanel>
       </Paper>
 
