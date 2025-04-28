@@ -23,6 +23,8 @@ import {
   Paper,
   SelectChangeEvent,
   IconButton,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -31,6 +33,10 @@ import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import DirectionsBikeIcon from '@mui/icons-material/DirectionsBike';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import FavoriteButton from '../components/favorites/FavoriteButton';
+import OfflineButton from '../components/offline/OfflineButton';
+import MobileTourCard from '../components/tours/MobileTourCard';
+import MobileSearchBar from '../components/search/MobileSearchBar';
+import useResponsive from '../hooks/useResponsive';
 import TourService, { Tour } from '../services/tour.service';
 
 // Mock data for tours
@@ -128,6 +134,7 @@ const ToursPage: React.FC = () => {
   const [priceRange, setPriceRange] = useState('all');
   const [difficulty, setDifficulty] = useState('all');
   const [page, setPage] = useState(1);
+  const { isMobile } = useResponsive();
 
   // Filter tours based on tour type and other filters
   const filteredTours = mockTours.filter((tour) => {
@@ -245,187 +252,225 @@ const ToursPage: React.FC = () => {
       </Typography>
 
       {/* Filters and Search */}
-      <Paper sx={{ p: 2, mb: 4 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Search Tours"
-              variant="outlined"
-              value={searchTerm}
-              onChange={handleSearchChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
+      {isMobile ? (
+        // Mobile search and filters
+        <MobileSearchBar
+          searchTerm={searchTerm}
+          onSearchChange={handleSearchChange}
+          sortBy={sortBy}
+          onSortChange={handleSortChange}
+          priceRange={priceRange}
+          onPriceRangeChange={handlePriceRangeChange}
+          difficulty={difficulty}
+          onDifficultyChange={handleDifficultyChange}
+        />
+      ) : (
+        // Desktop search and filters
+        <Paper sx={{ p: 2, mb: 4 }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Search Tours"
+                variant="outlined"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4} md={2}>
+              <FormControl fullWidth>
+                <InputLabel id="sort-label">Sort By</InputLabel>
+                <Select
+                  labelId="sort-label"
+                  id="sort-select"
+                  value={sortBy}
+                  label="Sort By"
+                  onChange={handleSortChange}
+                >
+                  <MenuItem value="recommended">Recommended</MenuItem>
+                  <MenuItem value="price-low">Price: Low to High</MenuItem>
+                  <MenuItem value="price-high">Price: High to Low</MenuItem>
+                  <MenuItem value="duration-low">Duration: Short to Long</MenuItem>
+                  <MenuItem value="duration-high">Duration: Long to Short</MenuItem>
+                  <MenuItem value="rating">Highest Rated</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={4} md={2}>
+              <FormControl fullWidth>
+                <InputLabel id="price-label">Price Range</InputLabel>
+                <Select
+                  labelId="price-label"
+                  id="price-select"
+                  value={priceRange}
+                  label="Price Range"
+                  onChange={handlePriceRangeChange}
+                >
+                  <MenuItem value="all">All Prices</MenuItem>
+                  <MenuItem value="0-25">$0 - $25</MenuItem>
+                  <MenuItem value="25-50">$25 - $50</MenuItem>
+                  <MenuItem value="50-100">$50 - $100</MenuItem>
+                  <MenuItem value="100">$100+</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={4} md={2}>
+              <FormControl fullWidth>
+                <InputLabel id="difficulty-label">Difficulty</InputLabel>
+                <Select
+                  labelId="difficulty-label"
+                  id="difficulty-select"
+                  value={difficulty}
+                  label="Difficulty"
+                  onChange={handleDifficultyChange}
+                >
+                  <MenuItem value="all">All Levels</MenuItem>
+                  <MenuItem value="easy">Easy</MenuItem>
+                  <MenuItem value="moderate">Moderate</MenuItem>
+                  <MenuItem value="difficult">Difficult</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <Typography variant="body2" color="text.secondary">
+                {filteredTours.length} tours found
+              </Typography>
+            </Grid>
           </Grid>
-          <Grid item xs={12} sm={4} md={2}>
-            <FormControl fullWidth>
-              <InputLabel id="sort-label">Sort By</InputLabel>
-              <Select
-                labelId="sort-label"
-                id="sort-select"
-                value={sortBy}
-                label="Sort By"
-                onChange={handleSortChange}
-              >
-                <MenuItem value="recommended">Recommended</MenuItem>
-                <MenuItem value="price-low">Price: Low to High</MenuItem>
-                <MenuItem value="price-high">Price: High to Low</MenuItem>
-                <MenuItem value="duration-low">Duration: Short to Long</MenuItem>
-                <MenuItem value="duration-high">Duration: Long to Short</MenuItem>
-                <MenuItem value="rating">Highest Rated</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={4} md={2}>
-            <FormControl fullWidth>
-              <InputLabel id="price-label">Price Range</InputLabel>
-              <Select
-                labelId="price-label"
-                id="price-select"
-                value={priceRange}
-                label="Price Range"
-                onChange={handlePriceRangeChange}
-              >
-                <MenuItem value="all">All Prices</MenuItem>
-                <MenuItem value="0-25">$0 - $25</MenuItem>
-                <MenuItem value="25-50">$25 - $50</MenuItem>
-                <MenuItem value="50-100">$50 - $100</MenuItem>
-                <MenuItem value="100">$100+</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={4} md={2}>
-            <FormControl fullWidth>
-              <InputLabel id="difficulty-label">Difficulty</InputLabel>
-              <Select
-                labelId="difficulty-label"
-                id="difficulty-select"
-                value={difficulty}
-                label="Difficulty"
-                onChange={handleDifficultyChange}
-              >
-                <MenuItem value="all">All Levels</MenuItem>
-                <MenuItem value="easy">Easy</MenuItem>
-                <MenuItem value="moderate">Moderate</MenuItem>
-                <MenuItem value="difficult">Difficult</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography variant="body2" color="text.secondary">
-              {filteredTours.length} tours found
-            </Typography>
-          </Grid>
-        </Grid>
-      </Paper>
+        </Paper>
+      )}
 
       {/* Tour Cards */}
       {displayedTours.length > 0 ? (
-        <Grid container spacing={4}>
-          {displayedTours.map((tour) => (
-            <Grid item key={tour.id} xs={12} sm={6} md={4}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <CardMedia
-                  component="img"
-                  height="200"
-                  image={tour.image}
-                  alt={tour.name}
-                />
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                    <Chip
-                      icon={getTourIcon(tour.type)}
-                      label={tour.type.charAt(0).toUpperCase() + tour.type.slice(1)}
+        isMobile ? (
+          // Mobile view - stack cards vertically with mobile-optimized card
+          <Box>
+            {displayedTours.map((tour) => (
+              <MobileTourCard
+                key={tour.id}
+                tour={{
+                  ...tour,
+                  _id: tour.id, // Ensure compatibility with MobileTourCard props
+                  startLocation: { address: 'City Center' }, // Mock data
+                }}
+              />
+            ))}
+          </Box>
+        ) : (
+          // Desktop view - grid layout with standard cards
+          <Grid container spacing={4}>
+            {displayedTours.map((tour) => (
+              <Grid item key={tour.id} xs={12} sm={6} md={4}>
+                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={tour.image}
+                    alt={tour.name}
+                  />
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Chip
+                        icon={getTourIcon(tour.type)}
+                        label={tour.type.charAt(0).toUpperCase() + tour.type.slice(1)}
+                        size="small"
+                        color={
+                          tour.type === 'walking'
+                            ? 'primary'
+                            : tour.type === 'bus'
+                            ? 'secondary'
+                            : 'success'
+                        }
+                      />
+                      <Chip
+                        label={tour.difficulty}
+                        size="small"
+                        color={
+                          tour.difficulty === 'easy'
+                            ? 'success'
+                            : tour.difficulty === 'moderate'
+                            ? 'warning'
+                            : 'error'
+                        }
+                      />
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <Typography gutterBottom variant="h6" component="h2">
+                        {tour.name}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <FavoriteButton tourId={tour.id} size="small" />
+                        <OfflineButton tourId={tour.id} size="small" />
+                      </Box>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      {tour.description}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <AccessTimeIcon fontSize="small" sx={{ mr: 0.5 }} />
+                      <Typography variant="body2" color="text.secondary">
+                        {Math.floor(tour.duration / 60) > 0
+                          ? `${Math.floor(tour.duration / 60)}h ${tour.duration % 60}min`
+                          : `${tour.duration}min`}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mx: 1 }}>
+                        •
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {tour.distance} km
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Rating
+                        value={tour.ratingsAverage}
+                        precision={0.1}
+                        readOnly
+                        size="small"
+                      />
+                      <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>
+                        ({tour.ratingsQuantity})
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <AttachMoneyIcon />
+                      <Typography variant="h6" component="span">
+                        {tour.price}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>
+                        per person
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                  <Divider />
+                  <CardActions>
+                    <Button
                       size="small"
-                      color={
-                        tour.type === 'walking'
-                          ? 'primary'
-                          : tour.type === 'bus'
-                          ? 'secondary'
-                          : 'success'
-                      }
-                    />
-                    <Chip
-                      label={tour.difficulty}
+                      component={RouterLink}
+                      to={`/tours/${tour.id}/details`}
+                    >
+                      View Details
+                    </Button>
+                    <Button
                       size="small"
-                      color={
-                        tour.difficulty === 'easy'
-                          ? 'success'
-                          : tour.difficulty === 'moderate'
-                          ? 'warning'
-                          : 'error'
-                      }
-                    />
-                  </Box>
-                  <Typography gutterBottom variant="h6" component="h2">
-                    {tour.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" paragraph>
-                    {tour.description}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <AccessTimeIcon fontSize="small" sx={{ mr: 0.5 }} />
-                    <Typography variant="body2" color="text.secondary">
-                      {Math.floor(tour.duration / 60) > 0
-                        ? `${Math.floor(tour.duration / 60)}h ${tour.duration % 60}min`
-                        : `${tour.duration}min`}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mx: 1 }}>
-                      •
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {tour.distance} km
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Rating
-                      value={tour.ratingsAverage}
-                      precision={0.1}
-                      readOnly
-                      size="small"
-                    />
-                    <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>
-                      ({tour.ratingsQuantity})
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <AttachMoneyIcon />
-                    <Typography variant="h6" component="span">
-                      {tour.price}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>
-                      per person
-                    </Typography>
-                  </Box>
-                </CardContent>
-                <Divider />
-                <CardActions>
-                  <Button
-                    size="small"
-                    component={RouterLink}
-                    to={`/tours/${tour.id}`}
-                  >
-                    View Details
-                  </Button>
-                  <Button
-                    size="small"
-                    variant="contained"
-                    component={RouterLink}
-                    to={`/tours/${tour.id}/book`}
-                  >
-                    Book Now
-                  </Button>
-                </CardActions>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+                      variant="contained"
+                      component={RouterLink}
+                      to={`/tours/${tour.id}/book`}
+                    >
+                      Book Now
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )
       ) : (
         <Box sx={{ textAlign: 'center', py: 4 }}>
           <Typography variant="h6">No tours found matching your criteria</Typography>
@@ -443,6 +488,16 @@ const ToursPage: React.FC = () => {
             page={page}
             onChange={handlePageChange}
             color="primary"
+            size={isMobile ? "medium" : "large"}
+            siblingCount={isMobile ? 0 : 1}
+            boundaryCount={isMobile ? 1 : 2}
+            sx={{
+              '& .MuiPaginationItem-root': {
+                minWidth: isMobile ? '36px' : '40px',
+                height: isMobile ? '36px' : '40px',
+                fontSize: isMobile ? '0.875rem' : '1rem',
+              },
+            }}
           />
         </Stack>
       )}

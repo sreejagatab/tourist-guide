@@ -1,6 +1,7 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_51NXJUmLkdIwIDF7KNBvQDVxGYKA8N1vGHEXBeI9xLOjZdUMrGMQUlQQYLcIQQK3mTCOc4OMOYFLzQyHbAYMBQHBT00Ij7qqgGI');
 const Tour = require('../models/tour.model');
 const Booking = require('../models/booking.model');
+const encryption = require('../utils/encryption');
 
 // Create a payment intent for Stripe
 exports.createPaymentIntent = async (req, res) => {
@@ -19,7 +20,7 @@ exports.createPaymentIntent = async (req, res) => {
 
     // Calculate amount
     let amount = tour.price * numberOfPeople;
-    
+
     // Add bike rental cost if applicable
     if (tour.type === 'bike' && bikeRentalDetails && bikeRentalDetails.rented && tour.bikeRental?.available) {
       amount += (tour.bikeRental.price || 0) * (bikeRentalDetails.quantity || 0);
@@ -90,26 +91,26 @@ exports.handleWebhook = async (req, res) => {
 const handleSuccessfulPayment = async (paymentIntent) => {
   try {
     const { tourId, userId, numberOfPeople, bikeRentalDetails } = paymentIntent.metadata;
-    
+
     // Parse bikeRentalDetails
     const parsedBikeRentalDetails = JSON.parse(bikeRentalDetails);
-    
+
     // Get tour details
     const tour = await Tour.findById(tourId);
     if (!tour) {
       console.error('Tour not found for payment:', tourId);
       return;
     }
-    
+
     // Calculate total amount
     let totalAmount = tour.price * parseInt(numberOfPeople);
-    
+
     // Add bike rental cost if applicable
     if (tour.type === 'bike' && parsedBikeRentalDetails.rented && tour.bikeRental?.available) {
       totalAmount += (tour.bikeRental.price || 0) * (parsedBikeRentalDetails.quantity || 0);
     }
-    
-    // Create booking
+
+    // Create booking with encrypted payment details
     const booking = new Booking({
       tour: tourId,
       user: userId,
@@ -120,6 +121,16 @@ const handleSuccessfulPayment = async (paymentIntent) => {
       status: 'confirmed',
       paymentId: paymentIntent.id,
       paymentMethod: 'stripe',
+      // Encrypt sensitive payment details
+      paymentDetails: encryption.encrypt(JSON.stringify({
+        paymentIntentId: paymentIntent.id,
+        paymentMethodId: paymentIntent.payment_method,
+        last4: paymentIntent.charges?.data[0]?.payment_method_details?.card?.last4,
+        brand: paymentIntent.charges?.data[0]?.payment_method_details?.card?.brand,
+        expiryMonth: paymentIntent.charges?.data[0]?.payment_method_details?.card?.exp_month,
+        expiryYear: paymentIntent.charges?.data[0]?.payment_method_details?.card?.exp_year,
+        timestamp: new Date().toISOString()
+      })),
       bikeRentalDetails: parsedBikeRentalDetails.rented ? {
         rented: true,
         bikeType: parsedBikeRentalDetails.bikeType,
@@ -127,7 +138,7 @@ const handleSuccessfulPayment = async (paymentIntent) => {
         rentalPrice: tour.bikeRental?.price || 0
       } : undefined
     });
-    
+
     await booking.save();
     console.log('Booking created successfully:', booking._id);
   } catch (error) {

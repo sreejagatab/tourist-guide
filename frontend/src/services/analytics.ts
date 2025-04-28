@@ -1,10 +1,11 @@
 /**
  * Analytics Service
- * 
+ *
  * This service provides methods for tracking user behavior and interactions.
- * It can be extended to integrate with third-party analytics providers like
- * Google Analytics, Mixpanel, or custom backend analytics.
+ * It connects to the backend analytics API to store and process analytics data.
  */
+
+import api from './api';
 
 // Types for analytics events
 export interface AnalyticsEvent {
@@ -38,7 +39,7 @@ class AnalyticsService {
   constructor() {
     // Generate a session ID
     this.sessionId = this.generateSessionId();
-    
+
     // Check if we're in development mode
     this.debugMode = process.env.NODE_ENV === 'development';
   }
@@ -53,10 +54,10 @@ class AnalyticsService {
 
     // Set up event listeners
     window.addEventListener('beforeunload', this.handleBeforeUnload);
-    
+
     // Mark as initialized
     this.isInitialized = true;
-    
+
     if (this.debugMode) {
       console.log('Analytics service initialized');
     }
@@ -67,7 +68,7 @@ class AnalyticsService {
    */
   public setUserId(userId: string): void {
     this.userId = userId;
-    
+
     if (this.debugMode) {
       console.log(`Analytics: User ID set to ${userId}`);
     }
@@ -78,7 +79,7 @@ class AnalyticsService {
    */
   public clearUserId(): void {
     this.userId = null;
-    
+
     if (this.debugMode) {
       console.log('Analytics: User ID cleared');
     }
@@ -89,7 +90,7 @@ class AnalyticsService {
    */
   public trackPageView(event: PageViewEvent): void {
     const { path, title, ...rest } = event;
-    
+
     const pageViewData = {
       path,
       title: title || document.title,
@@ -99,10 +100,10 @@ class AnalyticsService {
       userId: this.userId,
       ...rest
     };
-    
+
     // In a real implementation, send this to your analytics backend
     this.sendToAnalyticsBackend('pageview', pageViewData);
-    
+
     if (this.debugMode) {
       console.log('Analytics: Page View', pageViewData);
     }
@@ -118,14 +119,14 @@ class AnalyticsService {
       sessionId: this.sessionId,
       userId: this.userId
     };
-    
+
     // Add to queue for batch processing
     this.eventQueue.push(eventData);
-    
+
     // In a real implementation, you might want to batch events
     // For now, we'll send immediately
     this.sendToAnalyticsBackend('event', eventData);
-    
+
     if (this.debugMode) {
       console.log('Analytics: Event', eventData);
     }
@@ -163,15 +164,75 @@ class AnalyticsService {
     if (this.eventQueue.length === 0) {
       return;
     }
-    
-    // In a real implementation, send the batch to your analytics backend
-    // this.sendToAnalyticsBackend('batch', this.eventQueue);
-    
+
+    // Send batch to analytics backend
+    api.post('/analytics/track-batch', {
+      events: this.eventQueue.map(event => ({
+        type: 'event',
+        data: event
+      }))
+    }).catch(error => {
+      console.error('Failed to send batch analytics data:', error);
+
+      // Store failed events for retry later
+      this.eventQueue.forEach(event => {
+        this.storeFailedEvent('event', event);
+      });
+    });
+
     // Clear the queue
     this.eventQueue = [];
-    
+
     if (this.debugMode) {
       console.log('Analytics: Flushed event queue');
+    }
+
+    // Also try to send any previously failed events
+    this.retryFailedEvents();
+  }
+
+  /**
+   * Retry sending failed events from localStorage
+   */
+  private retryFailedEvents(): void {
+    try {
+      const failedEventsStr = localStorage.getItem('failedAnalyticsEvents');
+      if (!failedEventsStr) return;
+
+      const failedEvents = JSON.parse(failedEventsStr);
+      if (failedEvents.length === 0) return;
+
+      // Only retry events that are less than 24 hours old
+      const cutoff = new Date();
+      cutoff.setHours(cutoff.getHours() - 24);
+
+      const recentEvents = failedEvents.filter(event =>
+        new Date(event.timestamp) > cutoff
+      );
+
+      if (recentEvents.length === 0) {
+        localStorage.removeItem('failedAnalyticsEvents');
+        return;
+      }
+
+      // Send batch of failed events
+      api.post('/analytics/track-batch', {
+        events: recentEvents
+      }).then(() => {
+        // Clear successfully sent events
+        localStorage.removeItem('failedAnalyticsEvents');
+
+        if (this.debugMode) {
+          console.log(`Analytics: Successfully retried ${recentEvents.length} failed events`);
+        }
+      }).catch(() => {
+        // Keep events in localStorage for next retry
+        if (this.debugMode) {
+          console.log(`Analytics: Failed to retry ${recentEvents.length} events`);
+        }
+      });
+    } catch (error) {
+      console.error('Error retrying failed analytics events:', error);
     }
   }
 
@@ -195,30 +256,48 @@ class AnalyticsService {
 
   /**
    * Send data to the analytics backend
-   * This is a placeholder for the actual implementation
    */
   private sendToAnalyticsBackend(type: string, data: any): void {
-    // In a real implementation, this would send data to your analytics backend
-    // For now, we'll just log it in debug mode
     if (this.debugMode) {
       console.log(`Analytics: Sending ${type} to backend`, data);
     }
-    
-    // Example implementation with fetch:
-    /*
-    fetch('/api/analytics', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        type,
-        data
-      }),
+
+    // Send to backend API
+    api.post('/analytics/track', {
+      type,
+      data
     }).catch(error => {
       console.error('Failed to send analytics data:', error);
+
+      // Store failed events in localStorage for retry later
+      this.storeFailedEvent(type, data);
     });
-    */
+  }
+
+  /**
+   * Store failed events in localStorage for retry later
+   */
+  private storeFailedEvent(type: string, data: any): void {
+    try {
+      // Get existing failed events
+      const failedEventsStr = localStorage.getItem('failedAnalyticsEvents');
+      const failedEvents = failedEventsStr ? JSON.parse(failedEventsStr) : [];
+
+      // Add new failed event
+      failedEvents.push({
+        type,
+        data,
+        timestamp: new Date().toISOString()
+      });
+
+      // Store back in localStorage (limit to 100 events to prevent overflow)
+      localStorage.setItem(
+        'failedAnalyticsEvents',
+        JSON.stringify(failedEvents.slice(-100))
+      );
+    } catch (error) {
+      console.error('Failed to store analytics event in localStorage:', error);
+    }
   }
 }
 

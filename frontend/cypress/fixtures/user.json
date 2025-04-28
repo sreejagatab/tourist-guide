@@ -1,0 +1,12 @@
+{
+  "regularUser": {
+    "email": "user@example.com",
+    "password": "Password123!",
+    "username": "testuser"
+  },
+  "adminUser": {
+    "email": "admin@example.com",
+    "password": "Password123!",
+    "username": "adminuser"
+  }
+}

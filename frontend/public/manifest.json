@@ -1,0 +1,56 @@
+{
+  "short_name": "TourGuide",
+  "name": "TourGuide - Explore the World",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1976d2",
+  "background_color": "#ffffff",
+  "description": "Your comprehensive tourism app for exploring cities",
+  "orientation": "portrait-primary",
+  "categories": ["travel", "tourism", "navigation"],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    },
+    {
+      "src": "screenshot2.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "View Tours",
+      "short_name": "Tours",
+      "description": "Browse available tours",
+      "url": "/tours",
+      "icons": [{ "src": "tour-icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Favorites",
+      "short_name": "Favorites",
+      "description": "View your favorite tours",
+      "url": "/favorites",
+      "icons": [{ "src": "favorite-icon.png", "sizes": "192x192" }]
+    }
+  ]
+}

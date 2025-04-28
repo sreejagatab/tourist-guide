@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You're Offline - TourGuide</title>
+  <style>
+    body {
+      font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background-color: #1976d2;
+      color: white;
+      padding: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .logo {
+      font-family: monospace;
+      font-weight: 700;
+      letter-spacing: 0.3rem;
+      font-size: 1.5rem;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+    .offline-container {
+      max-width: 600px;
+      background-color: white;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    h1 {
+      margin-top: 0;
+      color: #1976d2;
+    }
+    .icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      color: #f50057;
+    }
+    .button {
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 24px;
+      text-transform: none;
+      font-weight: 500;
+      transition: background-color 0.3s;
+    }
+    .button:hover {
+      background-color: #115293;
+    }
+    footer {
+      padding: 16px;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      background-color: white;
+      border-top: 1px solid #eee;
+    }
+    .cached-content {
+      margin-top: 32px;
+      border-top: 1px solid #eee;
+      padding-top: 24px;
+    }
+    .tour-list {
+      display: none; /* Will be shown via JavaScript if cached tours exist */
+      list-style: none;
+      padding: 0;
+      margin: 16px 0;
+      text-align: left;
+    }
+    .tour-item {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
+    .tour-item:hover {
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">TOURGUIDE</div>
+  </header>
+  
+  <main>
+    <div class="offline-container">
+      <div class="icon">📶</div>
+      <h1>You're Offline</h1>
+      <p>It looks like you've lost your internet connection. Don't worry, you can still access some features and previously viewed content.</p>
+      
+      <button class="button" onclick="window.location.reload()">Try Again</button>
+      
+      <div class="cached-content">
+        <h2>Cached Content</h2>
+        <p>You can access these previously viewed tours while offline:</p>
+        <ul id="cached-tours" class="tour-list">
+          <!-- Will be populated via JavaScript -->
+          <li>Loading cached tours...</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+  
+  <footer>
+    &copy; 2023 TourGuide. All rights reserved.
+  </footer>
+
+  <script>
+    // Check for cached tours in IndexedDB
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const db = await openDB();
+        const cachedTours = await db.getAll('offlineTours');
+        
+        const tourList = document.getElementById('cached-tours');
+        
+        if (cachedTours && cachedTours.length > 0) {
+          tourList.innerHTML = '';
+          tourList.style.display = 'block';
+          
+          cachedTours.forEach(tour => {
+            const li = document.createElement('li');
+            li.className = 'tour-item';
+            li.textContent = tour.name;
+            li.onclick = () => {
+              window.location.href = `/tours/${tour.id}/details`;
+            };
+            tourList.appendChild(li);
+          });
+        } else {
+          tourList.innerHTML = '<li>No cached tours available</li>';
+          tourList.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Failed to load cached tours:', error);
+      }
+    });
+
+    // Simple IndexedDB wrapper
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('TourGuideOfflineDB', 1);
+        
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const db = request.result;
+          
+          // Add helper methods
+          db.getAll = (storeName) => {
+            return new Promise((resolve, reject) => {
+              const transaction = db.transaction(storeName, 'readonly');
+              const store = transaction.objectStore(storeName);
+              const request = store.getAll();
+              
+              request.onerror = () => reject(request.error);
+              request.onsuccess = () => resolve(request.result);
+            });
+          };
+          
+          resolve(db);
+        };
+        
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          
+          if (!db.objectStoreNames.contains('offlineTours')) {
+            db.createObjectStore('offlineTours', { keyPath: 'id' });
+          }
+        };
+      });
+    }
+  </script>
+</body>
+</html>

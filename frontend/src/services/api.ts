@@ -8,15 +8,46 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Important for CSRF cookies
 });
 
-// Add a request interceptor to add the auth token to requests
+// Store CSRF token
+let csrfToken: string | null = null;
+
+// Function to get CSRF token
+const fetchCsrfToken = async () => {
+  if (!csrfToken) {
+    try {
+      const response = await axios.get(`${API_URL}/csrf-token`, { withCredentials: true });
+      csrfToken = response.data.csrfToken;
+    } catch (error) {
+      console.error('Failed to fetch CSRF token:', error);
+    }
+  }
+  return csrfToken;
+};
+
+// Add a request interceptor to add the auth token and CSRF token to requests
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // Add auth token
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Add CSRF token for non-GET requests
+    if (config.method !== 'get') {
+      try {
+        const token = await fetchCsrfToken();
+        if (token) {
+          config.headers['X-CSRF-Token'] = token;
+        }
+      } catch (error) {
+        console.error('Error adding CSRF token to request:', error);
+      }
+    }
+
     return config;
   },
   (error) => {
@@ -30,11 +61,17 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response && error.response.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+    if (error.response) {
+      if (error.response.status === 401) {
+        // Token expired or invalid
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      } else if (error.response.status === 403 && error.response.data?.message?.includes('CSRF')) {
+        // CSRF token validation failed, try to get a new token
+        csrfToken = null;
+        console.error('CSRF token validation failed. Will try to get a new token on next request.');
+      }
     }
     return Promise.reject(error);
   }

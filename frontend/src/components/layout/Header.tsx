@@ -15,16 +15,16 @@ import {
   Link,
   useMediaQuery,
   useTheme,
+  Divider,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '../language/LanguageSelector';
+import HighContrastToggle from '../accessibility/HighContrastToggle';
 
-const pages = [
-  { title: 'Walking Tours', path: '/tours/walking' },
-  { title: 'Bus Tours', path: '/tours/bus' },
-  { title: 'Bike Tours', path: '/tours/bike' },
-  { title: 'Itineraries', path: '/itineraries' },
-];
+// Pages will be translated in the component
 
 const Header: React.FC = () => {
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
@@ -33,6 +33,7 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { t } = useTranslation();
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -55,6 +56,14 @@ const Header: React.FC = () => {
     navigate('/login');
   };
 
+  // Define pages with translations
+  const pages = [
+    { title: t('tours.walkingTours'), path: '/tours/walking' },
+    { title: t('tours.busTours'), path: '/tours/bus' },
+    { title: t('tours.bikeTours'), path: '/tours/bike' },
+    { title: t('itineraries.itineraries'), path: '/itineraries' },
+  ];
+
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
@@ -75,7 +84,7 @@ const Header: React.FC = () => {
               textDecoration: 'none',
             }}
           >
-            TOURGUIDE
+            {t('common.appName')}
           </Typography>
 
           {/* Mobile menu */}
@@ -139,7 +148,7 @@ const Header: React.FC = () => {
               textDecoration: 'none',
             }}
           >
-            TOURGUIDE
+            {t('common.appName')}
           </Typography>
 
           {/* Desktop menu */}
@@ -157,11 +166,17 @@ const Header: React.FC = () => {
             ))}
           </Box>
 
+          {/* Accessibility Controls */}
+          <Box sx={{ display: 'flex', mr: 2 }}>
+            <LanguageSelector variant={isMobile ? "icon" : "text"} color="inherit" />
+            <HighContrastToggle variant="icon" />
+          </Box>
+
           {/* User menu */}
           <Box sx={{ flexGrow: 0 }}>
             {user ? (
               <>
-                <Tooltip title="Open settings">
+                <Tooltip title={t('common.settings')}>
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                     <Avatar alt={user.username} src={user.profilePicture || ''} />
                   </IconButton>
@@ -188,7 +203,7 @@ const Header: React.FC = () => {
                       to="/profile"
                       sx={{ textDecoration: 'none', color: 'text.primary' }}
                     >
-                      <Typography textAlign="center">Profile</Typography>
+                      <Typography textAlign="center">{t('common.profile')}</Typography>
                     </Link>
                   </MenuItem>
                   <MenuItem onClick={handleCloseUserMenu}>
@@ -197,7 +212,17 @@ const Header: React.FC = () => {
                       to="/bookings"
                       sx={{ textDecoration: 'none', color: 'text.primary' }}
                     >
-                      <Typography textAlign="center">My Bookings</Typography>
+                      <Typography textAlign="center">{t('navigation.bookings')}</Typography>
+                    </Link>
+                  </MenuItem>
+                  <MenuItem onClick={handleCloseUserMenu}>
+                    <Link
+                      component={RouterLink}
+                      to="/favorites"
+                      sx={{ textDecoration: 'none', color: 'text.primary', display: 'flex', alignItems: 'center' }}
+                    >
+                      <FavoriteIcon fontSize="small" sx={{ mr: 1, color: 'secondary.main' }} />
+                      <Typography textAlign="center">{t('common.favorites')}</Typography>
                     </Link>
                   </MenuItem>
                   {user.role === 'admin' && (
@@ -207,12 +232,24 @@ const Header: React.FC = () => {
                         to="/admin"
                         sx={{ textDecoration: 'none', color: 'text.primary' }}
                       >
-                        <Typography textAlign="center">Admin Dashboard</Typography>
+                        <Typography textAlign="center">{t('navigation.admin')}</Typography>
                       </Link>
                     </MenuItem>
                   )}
+                  <Divider />
+                  <MenuItem>
+                    <Box sx={{ width: '100%' }}>
+                      <LanguageSelector variant="full" />
+                    </Box>
+                  </MenuItem>
+                  <MenuItem>
+                    <Box sx={{ width: '100%' }}>
+                      <HighContrastToggle variant="full" />
+                    </Box>
+                  </MenuItem>
+                  <Divider />
                   <MenuItem onClick={handleLogout}>
-                    <Typography textAlign="center">Logout</Typography>
+                    <Typography textAlign="center">{t('auth.logout')}</Typography>
                   </MenuItem>
                 </Menu>
               </>
@@ -223,7 +260,7 @@ const Header: React.FC = () => {
                   to="/login"
                   sx={{ color: 'white', mr: 1 }}
                 >
-                  Login
+                  {t('auth.login')}
                 </Button>
                 <Button
                   component={RouterLink}
@@ -231,7 +268,7 @@ const Header: React.FC = () => {
                   variant="contained"
                   color="secondary"
                 >
-                  Register
+                  {t('auth.register')}
                 </Button>
               </Box>
             )}

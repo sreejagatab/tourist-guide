@@ -19,9 +19,9 @@ const HomePageMap: React.FC<HomePageMapProps> = ({ height = 500 }) => {
       try {
         setLoading(true);
         // Get top rated tours
-        const response = await TourService.getAllTours({ 
-          sort: '-ratingsAverage', 
-          limit: 10 
+        const response = await TourService.getAllTours({
+          sort: '-ratingsAverage',
+          limit: 10
         });
         setTours(response.tours);
       } catch (err: any) {
@@ -36,9 +36,9 @@ const HomePageMap: React.FC<HomePageMapProps> = ({ height = 500 }) => {
 
   // Convert tours to map locations
   const mapLocations = tours
-    .filter(tour => 
-      tour.startLocation && 
-      tour.startLocation.coordinates && 
+    .filter(tour =>
+      tour.startLocation &&
+      tour.startLocation.coordinates &&
       tour.startLocation.coordinates.length === 2
     )
     .map(tour => ({
@@ -53,7 +53,7 @@ const HomePageMap: React.FC<HomePageMapProps> = ({ height = 500 }) => {
 
   // Default center (New York City)
   const defaultCenter = { lat: 40.7128, lng: -74.0060 };
-  
+
   // Use the first tour location as center if available
   const center = mapLocations.length > 0 ? mapLocations[0].position : defaultCenter;
 
@@ -122,35 +122,61 @@ const HomePageMap: React.FC<HomePageMapProps> = ({ height = 500 }) => {
     );
   }
 
-  return (
-    <Box sx={{ height, width: '100%', position: 'relative' }}>
-      <GoogleMapComponent
-        center={center}
-        zoom={3} // Zoomed out to show multiple locations
-        locations={mapLocations}
-        height={height}
-      />
+  // Fallback for development/testing when API might not be available
+  try {
+    return (
+      <Box sx={{ height, width: '100%', position: 'relative' }}>
+        <GoogleMapComponent
+          center={center}
+          zoom={3} // Zoomed out to show multiple locations
+          locations={mapLocations}
+          height={height}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 16,
+            left: 16,
+            zIndex: 1,
+            p: 2,
+            bgcolor: 'rgba(255, 255, 255, 0.9)',
+            borderRadius: 1,
+            maxWidth: 300,
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Explore Our Top Tours
+          </Typography>
+          <Typography variant="body2">
+            Click on the markers to see our most popular tours around the world.
+          </Typography>
+        </Box>
+      </Box>
+    );
+  } catch (error) {
+    console.error("Error rendering map:", error);
+    return (
       <Box
         sx={{
-          position: 'absolute',
-          top: 16,
-          left: 16,
-          zIndex: 1,
-          p: 2,
-          bgcolor: 'rgba(255, 255, 255, 0.9)',
+          height,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: 'grey.200',
           borderRadius: 1,
-          maxWidth: 300,
         }}
       >
-        <Typography variant="h6" gutterBottom>
-          Explore Our Top Tours
-        </Typography>
-        <Typography variant="body2">
-          Click on the markers to see our most popular tours around the world.
-        </Typography>
+        <Paper sx={{ p: 3, maxWidth: 400, textAlign: 'center' }}>
+          <Typography variant="h6" gutterBottom>
+            Map temporarily unavailable
+          </Typography>
+          <Typography variant="body2">
+            Please check back later to explore our tour locations.
+          </Typography>
+        </Paper>
       </Box>
-    </Box>
-  );
+    );
+  }
 };
 
 export default HomePageMap;

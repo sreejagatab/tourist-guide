@@ -1,0 +1,26 @@
+{
+  "walkingTour": {
+    "id": "walking-tour-1",
+    "name": "Historic City Center Walking Tour",
+    "type": "walking",
+    "price": 29.99,
+    "duration": 120,
+    "difficulty": "easy"
+  },
+  "busTour": {
+    "id": "bus-tour-1",
+    "name": "City Highlights Bus Tour",
+    "type": "bus",
+    "price": 49.99,
+    "duration": 180,
+    "difficulty": "easy"
+  },
+  "bikeTour": {
+    "id": "bike-tour-1",
+    "name": "Riverside Bike Adventure",
+    "type": "bike",
+    "price": 39.99,
+    "duration": 150,
+    "difficulty": "moderate"
+  }
+}

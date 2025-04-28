@@ -36,11 +36,15 @@ import {
   CalendarToday as CalendarTodayIcon,
   ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
+import ShareButton from '../components/sharing/ShareButton';
 import TourService, { Tour } from '../services/tour.service';
 import ReviewService, { Review } from '../services/review.service';
 import { useAuth } from '../context/AuthContext';
+import { useOffline } from '../context/OfflineContext';
 import TourMap from '../components/maps/TourMap';
 import FavoriteButton from '../components/favorites/FavoriteButton';
+import OfflineButton from '../components/offline/OfflineButton';
+import SimilarTours from '../components/recommendations/SimilarTours';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -66,6 +70,7 @@ const TourDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isOnline, isOfflineEnabled, saveForOffline } = useOffline();
   const [tour, setTour] = useState<Tour | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,6 +85,11 @@ const TourDetailPage: React.FC = () => {
           const tourData = await TourService.getTourById(id);
           setTour(tourData);
 
+          // Save tour for offline access if offline mode is enabled
+          if (isOfflineEnabled) {
+            await saveForOffline(id);
+          }
+
           // Fetch reviews
           const reviewsData = await ReviewService.getTourReviews(id);
           setReviews(reviewsData);
@@ -92,7 +102,7 @@ const TourDetailPage: React.FC = () => {
     };
 
     fetchTourData();
-  }, [id]);
+  }, [id, isOfflineEnabled, saveForOffline]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -214,7 +224,18 @@ const TourDetailPage: React.FC = () => {
                 <Typography component="h1" variant="h3" color="inherit" gutterBottom>
                   {tour.name}
                 </Typography>
-                <FavoriteButton tourId={tour._id} size="large" tooltipPlacement="left" />
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <FavoriteButton tourId={tour._id} size="large" tooltipPlacement="left" />
+                  <OfflineButton tourId={tour._id} size="large" tooltipPlacement="left" />
+                  <ShareButton
+                    title={tour.name}
+                    description={tour.description}
+                    imageUrl={tour.images && tour.images.length > 0 ? tour.images[0] : ''}
+                    variant="icon"
+                    size="large"
+                    color="primary"
+                  />
+                </Box>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 1 }}>
                 <Chip
@@ -250,14 +271,23 @@ const TourDetailPage: React.FC = () => {
               <Typography variant="subtitle1" color="inherit" gutterBottom>
                 per person
               </Typography>
-              <Button
-                variant="contained"
-                size="large"
-                onClick={handleBookNow}
-                sx={{ mt: 1 }}
-              >
-                Book Now
-              </Button>
+              <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={handleBookNow}
+                >
+                  Book Now
+                </Button>
+                <ShareButton
+                  title={tour.name}
+                  description={tour.description}
+                  imageUrl={tour.images && tour.images.length > 0 ? tour.images[0] : ''}
+                  variant="outlined"
+                  size="large"
+                  color="primary"
+                />
+              </Box>
             </Grid>
           </Grid>
         </Box>
@@ -738,18 +768,8 @@ const TourDetailPage: React.FC = () => {
         </TabPanel>
       </Paper>
 
-      {/* Related Tours */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" gutterBottom>
-          Similar Tours
-        </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph>
-          You might also be interested in these tours
-        </Typography>
-        <Typography variant="body1">
-          Similar tours will be implemented in the next phase.
-        </Typography>
-      </Box>
+      {/* Similar Tours */}
+      <SimilarTours tourId={id || ''} limit={4} />
 
       {/* Booking CTA */}
       <Paper sx={{ p: 3, textAlign: 'center', mb: 4 }}>
@@ -759,13 +779,22 @@ const TourDetailPage: React.FC = () => {
         <Typography variant="body1" paragraph>
           Book now to secure your spot. Easy cancellation up to 24 hours before the tour.
         </Typography>
-        <Button
-          variant="contained"
-          size="large"
-          onClick={handleBookNow}
-        >
-          Book Now
-        </Button>
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={handleBookNow}
+          >
+            Book Now
+          </Button>
+          <ShareButton
+            title={tour.name}
+            description={`Check out this amazing tour: ${tour.name}`}
+            variant="outlined"
+            size="large"
+            color="primary"
+          />
+        </Box>
       </Paper>
     </Box>
   );

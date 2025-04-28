@@ -3,7 +3,8 @@ import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-map
 import { Box, CircularProgress, Typography, Paper } from '@mui/material';
 
 // Replace with your actual Google Maps API key
-const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY';
+// Using a temporary key for development
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
 
 const containerStyle = {
   width: '100%',
@@ -64,7 +65,36 @@ const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({
           borderRadius: 1,
         }}
       >
-        <CircularProgress />
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress sx={{ mb: 2 }} />
+          <Typography variant="body2">Loading map...</Typography>
+        </Box>
+      </Box>
+    );
+  }
+
+  // If API key is missing, show a placeholder
+  if (!GOOGLE_MAPS_API_KEY) {
+    return (
+      <Box
+        sx={{
+          height,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: 'grey.200',
+          borderRadius: 1,
+          p: 2,
+        }}
+      >
+        <Paper sx={{ p: 3, maxWidth: 400, textAlign: 'center' }}>
+          <Typography variant="h6" gutterBottom>
+            Map Unavailable
+          </Typography>
+          <Typography variant="body2">
+            Google Maps API key is required to display the map.
+          </Typography>
+        </Paper>
       </Box>
     );
   }

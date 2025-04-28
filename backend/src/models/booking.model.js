@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const encryption = require('../utils/encryption');
 
 const bookingSchema = new mongoose.Schema(
   {
@@ -42,6 +43,11 @@ const bookingSchema = new mongoose.Schema(
       enum: ['credit_card', 'paypal', 'stripe'],
       required: true
     },
+    // Encrypted payment details
+    paymentDetails: {
+      type: String,
+      default: null
+    },
     ticketCode: {
       type: String
     },
@@ -64,19 +70,45 @@ const bookingSchema = new mongoose.Schema(
   }
 );
 
-// Generate ticket code before saving
+// Generate ticket code and encrypt payment details before saving
 bookingSchema.pre('save', function(next) {
-  if (this.isNew) {
-    // Generate a random ticket code
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let ticketCode = '';
-    for (let i = 0; i < 8; i++) {
-      ticketCode += characters.charAt(Math.floor(Math.random() * characters.length));
+  try {
+    if (this.isNew) {
+      // Generate a random ticket code
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let ticketCode = '';
+      for (let i = 0; i < 8; i++) {
+        ticketCode += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      this.ticketCode = ticketCode;
     }
-    this.ticketCode = ticketCode;
+
+    // Encrypt payment details if modified
+    if (this.isModified('paymentDetails') && this.paymentDetails) {
+      this.paymentDetails = encryption.encrypt(this.paymentDetails);
+    }
+
+    next();
+  } catch (error) {
+    next(error);
   }
-  next();
 });
+
+// Method to get decrypted payment details
+bookingSchema.methods.getDecryptedPaymentDetails = function() {
+  if (!this.paymentDetails) return null;
+  return encryption.decrypt(this.paymentDetails, true);
+};
+
+// Transform the document when converting to JSON
+bookingSchema.methods.toJSON = function() {
+  const booking = this.toObject();
+
+  // Remove sensitive information from the JSON output
+  delete booking.paymentDetails;
+
+  return booking;
+};
 
 const Booking = mongoose.model('Booking', bookingSchema);
 

@@ -1,0 +1,12 @@
+{
+  "validBooking": {
+    "date": "2025-06-15",
+    "numberOfPeople": 2,
+    "totalPrice": 59.98
+  },
+  "largeGroupBooking": {
+    "date": "2025-07-20",
+    "numberOfPeople": 10,
+    "totalPrice": 299.90
+  }
+}

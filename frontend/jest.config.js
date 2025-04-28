@@ -12,8 +12,8 @@ export default {
   setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts'],
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
-      tsconfig: 'tsconfig.json',
-      isolatedModules: true,
+      tsconfig: 'tsconfig.app.json',
+      useESM: true,
     }],
   },
   testMatch: ['<rootDir>/src/tests/**/*.test.(ts|tsx)'],
@@ -32,4 +32,13 @@ export default {
     },
   },
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
+  transformIgnorePatterns: [
+    '/node_modules/(?!(@react-google-maps|i18next|react-i18next)/)'
+  ],
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  globals: {
+    'ts-jest': {
+      useESM: true,
+    },
+  },
 };

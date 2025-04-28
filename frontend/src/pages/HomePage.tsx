@@ -18,8 +18,11 @@ import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import DirectionsBikeIcon from '@mui/icons-material/DirectionsBike';
 import ExploreIcon from '@mui/icons-material/Explore';
 import HomePageMap from '../components/maps/HomePageMap';
+import PersonalizedRecommendations from '../components/recommendations/PersonalizedRecommendations';
+import { useTranslation } from 'react-i18next';
 
 const HomePage: React.FC = () => {
+  const { t } = useTranslation();
   return (
     <>
       {/* Hero Section */}
@@ -180,6 +183,13 @@ const HomePage: React.FC = () => {
           </Button>
         </Box>
       </Box>
+
+      <Divider sx={{ my: 6 }} />
+
+      {/* Personalized Recommendations Section */}
+      <Container maxWidth="lg">
+        <PersonalizedRecommendations limit={4} />
+      </Container>
 
       <Divider sx={{ my: 6 }} />
 
